@@ -1,6 +1,7 @@
 const chatContainer = document.getElementById("chat-container");
 const messageForm = document.getElementById("message-form");
 const userInput = document.getElementById("user-input");
+const apiSelector = document.getElementById("api-selector");
 
 // Create a message bubble
 function createMessageBubble(content, sender = "user") {
@@ -59,13 +60,28 @@ function scrollToBottom() {
   chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-// Simulate assistant response
-function getAssistantResponse(userMessage) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve("가짜 chat GPT야: " + userMessage);
-    }, 1500);
+// Fetch assistant response from the selected backend endpoint
+async function getAssistantResponse(userMessage) {
+  const mode = apiSelector.value;
+  const url =
+    mode === "assistant"
+      ? "http://localhost:8000/assistant"
+      : "http://localhost:8000/chat";
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ message: userMessage }),
   });
+
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+
+  const data = await response.json();
+  return data.reply;
 }
 
 // Handle form submission
@@ -80,7 +96,18 @@ messageForm.addEventListener("submit", async (e) => {
   scrollToBottom();
 
   // Assistant response
-  const response = await getAssistantResponse(message);
-  chatContainer.appendChild(createMessageBubble(response, "assistant"));
-  scrollToBottom();
+  try {
+    const response = await getAssistantResponse(message);
+    chatContainer.appendChild(createMessageBubble(response, "assistant"));
+    scrollToBottom();
+  } catch (error) {
+    console.error("Error fetching assistant response:", error);
+    chatContainer.appendChild(
+      createMessageBubble(
+        "Error fetching response. Check console.",
+        "assistant"
+      )
+    );
+    scrollToBottom();
+  }
 });
