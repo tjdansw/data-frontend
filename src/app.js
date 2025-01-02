@@ -69,6 +69,8 @@ async function getAssistantResponse(userMessage) {
     mode === "assistant"
       ? `${BASE_URL}/assistant`
       : `${BASE_URL}/chat`;
+    console.log(url);
+    
 
   const response = await fetch(url, {
     method: "POST",
@@ -91,6 +93,8 @@ messageForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const message = userInput.value.trim();
   if (!message) return;
+  console.log(message);
+  
 
   // User message
   chatContainer.appendChild(createMessageBubble(message, "user"));
